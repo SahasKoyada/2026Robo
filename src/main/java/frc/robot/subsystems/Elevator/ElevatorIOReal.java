@@ -5,7 +5,7 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -52,6 +52,7 @@ public class ElevatorIOReal implements ElevatorIO {
     //public static final int elevatorCanIDleft = 14;
     public static final int elevatorCanID/*right*/ = 15;
 
+    @SuppressWarnings("removal")
     public ElevatorIOReal() {
         kP = 0.5; 
         kI = 0;
@@ -101,6 +102,7 @@ public class ElevatorIOReal implements ElevatorIO {
     
     }
 
+    @SuppressWarnings("removal")
     @Override
     public void updateInputs(ElevatorIOInputs inputs) {
 
@@ -164,7 +166,7 @@ public class ElevatorIOReal implements ElevatorIO {
         setpoint = new TrapezoidProfile.State(encoder.getPosition(), 0);
         setpoint = profile.calculate(1, setpoint, goal);
 
-        closedLoopController.setReference(setpoint.position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        closedLoopController.setSetpoint(setpoint.position, ControlType.kPosition, ClosedLoopSlot.kSlot0);
 
     }
 

@@ -23,6 +23,7 @@ public class ClimberIOReal implements ClimberIO {
     double encoderStop = 16.1;
 
 
+    @SuppressWarnings("removal")
     public ClimberIOReal() {
         config.idleMode(IdleMode.kBrake).smartCurrentLimit(40);
         climberMotor = new SparkMax(climberCanID, MotorType.kBrushless);

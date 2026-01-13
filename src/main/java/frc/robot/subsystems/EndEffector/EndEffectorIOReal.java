@@ -53,6 +53,7 @@ public class EndEffectorIOReal implements EndEffectorIO {
 
     
 
+    @SuppressWarnings("removal")
     public EndEffectorIOReal() {
 
         EndEffectorMotor = new SparkMax(EndEffectorCanID, MotorType.kBrushless);
@@ -69,7 +70,7 @@ public class EndEffectorIOReal implements EndEffectorIO {
         config.encoder.positionConversionFactor(1);
         //config.encoder.velocityConversionFactor(1);
         pidController = new PIDController(kP.get(), kI.get(), kD.get());
-        EndEffectorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        EndEffectorMotor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         EjectMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
         absEncoder.setInverted(true);

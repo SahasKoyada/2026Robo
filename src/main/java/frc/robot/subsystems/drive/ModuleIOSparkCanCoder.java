@@ -13,7 +13,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -57,7 +57,8 @@ public class ModuleIOSparkCanCoder implements ModuleIO {
 
   private final String modulePrefix;
 
-  public ModuleIOSparkCanCoder(int module) {
+  @SuppressWarnings("removal")
+public ModuleIOSparkCanCoder(int module) {
     modulePrefix =
         switch (module) {
           case 0 -> new String("FL_");
@@ -246,7 +247,7 @@ public class ModuleIOSparkCanCoder implements ModuleIO {
   @Override
   public void setDriveVelocity(double velocityRadPerSec) {
     double ffVolts = driveKs * Math.signum(velocityRadPerSec) + driveKv * velocityRadPerSec;
-    driveController.setReference(
+    driveController.setSetpoint(
         velocityRadPerSec,
         ControlType.kVelocity,
         ClosedLoopSlot.kSlot0,

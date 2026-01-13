@@ -9,7 +9,7 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -57,6 +57,7 @@ public class AlgaeIOReal implements AlgaeIO {
     SparkClosedLoopController closedLoopController;
 
 
+    @SuppressWarnings("removal")
     public AlgaeIOReal() {
         algaePivotMotor = new SparkMax(algaePivotMotorCanID, MotorType.kBrushless);
         leftAlgaeIntakeMotor = new SparkMax(leftAlgaeIntakeMotorCanID, MotorType.kBrushless);
@@ -112,6 +113,7 @@ public class AlgaeIOReal implements AlgaeIO {
         
     }
 
+    @SuppressWarnings("removal")
     @Override
     public void updateInputs(AlgaeIOInputs inputs) {
 
@@ -168,7 +170,7 @@ public class AlgaeIOReal implements AlgaeIO {
         // Removed conversion settings, use raw encoder values
         if (Math.abs(position - absEncoder.getPosition()) > 0.01) {
 
-            closedLoopController.setReference(position, ControlType.kPosition); 
+            closedLoopController.setSetpoint(position, ControlType.kPosition); 
             
         }
         else {

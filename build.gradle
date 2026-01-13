@@ -50,6 +50,8 @@ wpi.java.debugJni = false
 // Set this to true to enable desktop support.
 def includeDesktopSupport = true
 repositories {
+    mavenCentral()
+    mavenLocal()
     maven { url = uri("https://shenzhen-robotics-alliance.github.io/maple-sim/vendordep/repos/releases") }
 }
 
@@ -78,6 +80,10 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation "org.ironmaple:maplesim-java:0.3.14"
     implementation "org.dyn4j:dyn4j:5.0.2"
+    def akitJson = new groovy.json.JsonSlurper().parseText(
+        new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text
+    )
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 
 }
 
