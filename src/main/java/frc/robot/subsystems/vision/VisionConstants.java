@@ -13,14 +13,29 @@
 
 package frc.robot.subsystems.vision;
 
+import java.nio.file.Path;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
+//import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Filesystem;
+
+
 
 public class VisionConstants {
     // AprilTag layout
-    public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+    public static AprilTagFieldLayout aprilTagLayout; 
+    //= AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    static {
+  try {
+    Path json = Filesystem.getDeployDirectory().toPath()
+        .resolve("apriltags/2026-rebuilt-andymark.json");
+    aprilTagLayout = new AprilTagFieldLayout(json);
+  } catch (Exception e) {
+    throw new RuntimeException(e);
+  }
+}
 
     // Camera names, must match names configured on coprocessor
     public static String LimelightFrontName = "limelight-tag";
