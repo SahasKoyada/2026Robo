@@ -54,6 +54,9 @@ import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.commands.HubLock;
+import frc.robot.subsystems.Turret.Turret;
+
 
 @SuppressWarnings("unused")
 public class RobotContainer {
@@ -64,6 +67,9 @@ public class RobotContainer {
     private SwerveDriveSimulation driveSimulation = null;
     private EndEffector EndEffector;
     private Algae algae;
+    private Turret turret;
+    private Command hubLock;
+
 
     // Controller
     private final CommandXboxController driver = new CommandXboxController(0);
@@ -93,6 +99,9 @@ public class RobotContainer {
                 EndEffector = new EndEffector(new EndEffectorIOReal());
                 climber = new Climber(new ClimberIOReal());
                 algae = new Algae(new AlgaeIOReal());
+                turret = new Turret();
+                hubLock = new HubLock(turret);
+
                 // this.vision = new Vision(
                 //     drive,
                 //     new VisionIOLimelight("limelight-tag", drive::getRotation)
@@ -314,9 +323,16 @@ public class RobotContainer {
             .onFalse(EndEffector.ejecter(0));
 
             /* Intake Coral */
+            /* Operator – Turret Hub Lock */
+            if (hubLock != null) {
+                operator.rightBumper().whileTrue(hubLock);
+}
+
+            /*
             operator.rightBumper()
             .onTrue(EndEffector.ejecter(-0.7))
             .onFalse(EndEffector.ejecter(0));
+*/
 
             /* Intaking Setup Button - Move elevator to intake height, move intake to intake angle, and Intake coral */
             operator.axisMagnitudeGreaterThan(XboxController.Axis.kLeftTrigger.value, 0.1)
