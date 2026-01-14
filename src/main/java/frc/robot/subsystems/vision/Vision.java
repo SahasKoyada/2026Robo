@@ -80,12 +80,12 @@ public class Vision extends SubsystemBase {
         
         double targetID = getTargetID(0);
         Logger.recordOutput("Vision/Reef currentTag", targetID);
-        Logger.recordOutput("Vision/Reef 1_Front Tag", (targetID == 18 || targetID == 7));
-        Logger.recordOutput("Vision/Reef 2_LeftFront Tag", (targetID == 19 || targetID == 6));
-        Logger.recordOutput("Vision/Reef 3_LeftBack Tag", (targetID == 20 || targetID == 11));
-        Logger.recordOutput("Vision/Reef 4_Back Tag", (targetID == 21 || targetID == 10));
-        Logger.recordOutput("Vision/Reef 5_RightBack Tag", (targetID == 22 || targetID == 9));
-        Logger.recordOutput("Vision/Reef 6_RightFront Tag", (targetID == 17 || targetID == 8));
+        //Logger.recordOutput("Vision/Reef 1_Front Tag", (targetID == 18 || targetID == 7));
+        //Logger.recordOutput("Vision/Reef 2_LeftFront Tag", (targetID == 19 || targetID == 6));
+        //Logger.recordOutput("Vision/Reef 3_LeftBack Tag", (targetID == 20 || targetID == 11));
+        //Logger.recordOutput("Vision/Reef 4_Back Tag", (targetID == 21 || targetID == 10));
+        //Logger.recordOutput("Vision/Reef 5_RightBack Tag", (targetID == 22 || targetID == 9));
+        //Logger.recordOutput("Vision/Reef 6_RightFront Tag", (targetID == 17 || targetID == 8));
 
 
 
