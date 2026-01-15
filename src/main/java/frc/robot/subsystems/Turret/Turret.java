@@ -6,7 +6,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Turret extends SubsystemBase {
-  private final SparkMax motor = new SparkMax(20, MotorType.kBrushless); // CAN ID 20
+  private final SparkMax motor = new SparkMax(41, MotorType.kBrushless); // CAN ID 20
   private final RelativeEncoder encoder = motor.getEncoder();
 
   private static final double kMinRot = -1.0;  
