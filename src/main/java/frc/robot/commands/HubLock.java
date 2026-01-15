@@ -21,7 +21,12 @@ public class HubLock extends Command {
 
   @Override
   public void execute() {
-    System.out.println("HubLock executing");
+    System.out.println(
+  "HubLocking | tv=" + LimelightHelpers.getTV("limelight-tag") +
+  " id=" + (int) LimelightHelpers.getFiducialID("limelight-tag") +
+  " tx=" + LimelightHelpers.getTX("limelight-tag")
+);
+
     if (!LimelightHelpers.getTV("limelight-tag")) {
       turret.stop();
       return;
