@@ -318,10 +318,18 @@ public class RobotContainer {
            ;
 
             /* Intake Coral */
+            /* 
             operator.leftBumper()
             .onTrue(EndEffector.ejecter(0.7))
             .onFalse(EndEffector.ejecter(0));
-
+*/
+            if (turret != null) {
+                operator.leftBumper().whileTrue(
+                    Commands.run(() -> turret.setDutyCycle(0.2), turret)
+                ).onFalse(
+                    Commands.runOnce(turret::stop, turret)
+                );
+}
             /* Intake Coral */
             /* Operator – Turret Hub Lock */
             if (hubLock != null) {
