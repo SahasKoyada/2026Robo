@@ -50,7 +50,7 @@ public void setDutyCycle(double output) {
     }
   }
 
-  motor.set(MathUtil.clamp(output, -0.3, 0.3));
+  motor.set(MathUtil.clamp(output, -0.05, 0.05));
 }
 
 
