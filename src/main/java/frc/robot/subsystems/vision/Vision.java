@@ -74,8 +74,10 @@ public class Vision extends SubsystemBase {
 
     /** True if the camera has a valid target in the latest observation. */
     public boolean hasTarget(int cameraIndex) {
-        return inputs[cameraIndex].connected && inputs[cameraIndex].tagIds.length > 0;
-    }
+    return inputs[cameraIndex].connected
+        && inputs[cameraIndex].latestTargetObservation.tagId() > 0.5;
+}
+
 
 /** Horizontal angle offset to best target (deg). Positive means target is to the right (Limelight convention). */
     public double getTxDeg(int cameraIndex) {

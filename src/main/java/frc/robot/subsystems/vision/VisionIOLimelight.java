@@ -25,6 +25,7 @@ public class VisionIOLimelight implements VisionIO {
   private final DoubleArrayPublisher orientationPublisher;
 
   private final DoubleSubscriber latencySubscriber; // "tl" (ms)
+  private final DoubleSubscriber tvSubscriber;      // "tv" (0 or 1)
   private final DoubleSubscriber txSubscriber;      // "tx" (deg)
   private final DoubleSubscriber tySubscriber;      // "ty" (deg)
   private final DoubleSubscriber tidSubscriber;     // "tid" (tag id)
@@ -35,7 +36,7 @@ public class VisionIOLimelight implements VisionIO {
   /**
    * Creates a new VisionIOLimelight.
    *
-   * @param name The configured name of the Limelight (ex: "limelight-tag").
+   * @param name The configured name of the Limelight (ex: "limelight-tag" or "limelight").
    * @param rotationSupplier Supplier for the current estimated rotation, used for MegaTag 2.
    */
   public VisionIOLimelight(String name, Supplier<Rotation2d> rotationSupplier) {
@@ -46,6 +47,7 @@ public class VisionIOLimelight implements VisionIO {
     this.orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
 
     this.latencySubscriber = table.getDoubleTopic("tl").subscribe(0.0);
+    this.tvSubscriber = table.getDoubleTopic("tv").subscribe(0.0);
     this.txSubscriber = table.getDoubleTopic("tx").subscribe(0.0);
     this.tySubscriber = table.getDoubleTopic("ty").subscribe(0.0);
     this.tidSubscriber = table.getDoubleTopic("tid").subscribe(0.0);
@@ -62,12 +64,15 @@ public class VisionIOLimelight implements VisionIO {
     long lastChangeUs = latencySubscriber.getLastChange();
     inputs.connected = (nowUs - lastChangeUs) < 250_000; // 250ms
 
-    // Latest target observation (tx/ty in deg, tid is numeric tag id)
+    // Limelight valid target flag
+    boolean hasTarget = tvSubscriber.get() > 0.5;
+
+    // Latest target observation (gate tx/ty/tid on tv so you never "fake" a target at 0,0)
     inputs.latestTargetObservation =
         new TargetObservation(
-            Rotation2d.fromDegrees(txSubscriber.get()),
-            Rotation2d.fromDegrees(tySubscriber.get()),
-            tidSubscriber.get());
+            Rotation2d.fromDegrees(hasTarget ? txSubscriber.get() : 0.0),
+            Rotation2d.fromDegrees(hasTarget ? tySubscriber.get() : 0.0),
+            hasTarget ? tidSubscriber.get() : 0.0);
 
     // Orientation for MegaTag2 (Limelight recommends flushing)
     orientationPublisher.accept(
