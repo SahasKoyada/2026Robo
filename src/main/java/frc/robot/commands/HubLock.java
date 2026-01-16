@@ -1,5 +1,80 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.Turret.Turret;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIOLimelight;
+
+
+@SuppressWarnings("unused")
+public class HubLock extends Command {
+  private final Turret turret;
+  private final Vision vision;
+  private final int cameraIndex;
+
+  private static final double kP = 0.02;        
+  private static final double kMaxDuty = 0.30;
+  private static final double kMinDuty = 0.09;  
+  private static final double kDeadbandDeg = 0.7;
+
+  private double lastPrint = 0.0;
+
+  public HubLock(Turret turret, Vision vision, int cameraIndex) {
+    this.turret = turret;
+    this.vision = vision;
+    this.cameraIndex = cameraIndex;
+    addRequirements(turret);
+  }
+
+  @Override
+  public void execute() {
+    boolean hasTarget = vision.hasTarget(cameraIndex);
+    double txDeg = vision.getTxDeg(cameraIndex);
+
+    double duty = 0.0;
+    if (hasTarget) {
+      double err = MathUtil.applyDeadband(txDeg, kDeadbandDeg);
+
+      //inverter
+      duty = kP * err;
+
+      duty = MathUtil.clamp(duty, -kMaxDuty, kMaxDuty);
+      if (Math.abs(duty) > 1e-6) {
+        duty = Math.copySign(Math.max(Math.abs(duty), kMinDuty), duty);
+      }
+    }
+
+    turret.setDutyCycle(duty);
+
+    double now = Timer.getFPGATimestamp();
+    if (now - lastPrint > 0.25) {
+      System.out.println("[HubLock] hasTarget=" + hasTarget
+          + " txDeg=" + String.format("%.2f", txDeg)
+          + " duty=" + String.format("%.3f", duty));
+      lastPrint = now;
+    }
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    turret.stop();
+    System.out.println("[HubLock] end interrupted=" + interrupted);
+  }
+
+  @Override
+  public boolean isFinished() {
+    return false;
+  }
+}
+
+
+
+
+
+/*package frc.robot.commands;
+
 import java.util.Set;
 
 import edu.wpi.first.math.MathUtil;
@@ -9,49 +84,29 @@ import frc.robot.subsystems.Turret.Turret;
 import frc.robot.util.LimelightHelpers;
 
 public class HubLock extends Command {
-
-  private static final String LL = "limelight"; 
+  private static final String LL = "limelight";
   private static final int PIPELINE = 0;
 
-  private static final Set<Integer> HUB_TAG_IDS =
-      Set.of(2, 3, 4, 5, 8, 9, 10, 11);
+  private static final Set<Integer> HUB_TAG_IDS = Set.of(2, 3, 4, 5, 8, 9, 10, 11);
 
   private final Turret turret;
-  private PIDController rotController;
+  private final PIDController pid = new PIDController(0.02, 0.0, 0.001);
 
-  private int lockedTagId = -1;
+  private int lockedId = -1;
 
   public HubLock(Turret turret) {
     this.turret = turret;
     addRequirements(turret);
 
-    rotController = new PIDController(0.02, 0.0, 0.001);
-    rotController.setSetpoint(0.0);
-    rotController.setTolerance(1.0);
+    pid.setSetpoint(0.0);
+    pid.setTolerance(1.0);
   }
 
   @Override
   public void initialize() {
-    System.out.println("HubLock INIT");
-
     LimelightHelpers.setPipelineIndex(LL, PIPELINE);
-    rotController.reset();
-    lockedTagId = -1;
-
-    boolean tv = LimelightHelpers.getTV(LL);
-    int id = (int) LimelightHelpers.getFiducialID(LL);
-
-    System.out.println(
-        "INIT | tv=" + tv +
-        " id=" + id
-    );
-
-    if (tv && HUB_TAG_IDS.contains(id)) {
-      lockedTagId = id;
-      System.out.println("INIT | Locked onto tag " + lockedTagId);
-    } else {
-      System.out.println("INIT | No valid tag to lock");
-    }
+    pid.reset();
+    lockedId = -1;
   }
 
   @Override
@@ -60,53 +115,38 @@ public class HubLock extends Command {
     int id = (int) LimelightHelpers.getFiducialID(LL);
 
     if (!tv) {
-      System.out.println("EXEC | NO TARGET (tv=false)");
-      rotController.reset();
+      pid.reset();
       turret.stop();
       return;
     }
 
     if (!HUB_TAG_IDS.contains(id)) {
-      System.out.println("EXEC | INVALID TAG ID: " + id);
-      rotController.reset();
+      pid.reset();
       turret.stop();
       return;
     }
 
-    if (lockedTagId == -1) {
-      lockedTagId = id;
-      System.out.println("EXEC | Locking onto tag " + lockedTagId);
-    }
-
-    if (id != lockedTagId) {
-      System.out.println(
-          "EXEC | TAG CHANGED (locked=" + lockedTagId + " seen=" + id + ")"
-      );
-      rotController.reset();
+    if (lockedId == -1) lockedId = id;
+    if (id != lockedId) {
+      pid.reset();
       turret.stop();
+      
       return;
     }
 
     double[] targetSpace = LimelightHelpers.getBotPose_TargetSpace(LL);
+    double yawErrorDeg = targetSpace[4]; 
+    System.out.println("HubLock | id=" + id + " yawErr=" + yawErrorDeg);
 
-    double yawErrDeg = targetSpace[4];
+    double out = pid.calculate(yawErrorDeg);
 
-    double output = -rotController.calculate(yawErrDeg);
-    output = MathUtil.clamp(output, -0.25, 0.25);
-
-    System.out.println(
-        "EXEC | tag=" + id +
-        " yawErrDeg=" + yawErrDeg +
-        " pidOut=" + output
-    );
-
-    turret.setDutyCycle(output);
+    out = MathUtil.clamp(out, -0.25, 0.25);
+    turret.setDutyCycle(out);
   }
 
   @Override
   public void end(boolean interrupted) {
-    System.out.println("HubLock END | interrupted=" + interrupted);
-    rotController.reset();
+    pid.reset();
     turret.stop();
   }
 
@@ -115,3 +155,4 @@ public class HubLock extends Command {
     return false;
   }
 }
+*/

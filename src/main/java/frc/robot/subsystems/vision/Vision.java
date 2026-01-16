@@ -62,13 +62,31 @@ public class Vision extends SubsystemBase {
      *
      * @param cameraIndex The index of the camera to use.
      */
+    /** Returns the horizontal angle (deg) to the best target for simple servoing. */
     public Supplier<Double> getTargetX(int cameraIndex) {
-        return () -> targetID;
+        return () -> getTxDeg(cameraIndex);
     }
+
 
     public double getTargetID(int cameraIndex) {
         return inputs[cameraIndex].latestTargetObservation.tagId();
     }
+
+    /** True if the camera has a valid target in the latest observation. */
+    public boolean hasTarget(int cameraIndex) {
+        return inputs[cameraIndex].connected && inputs[cameraIndex].tagIds.length > 0;
+    }
+
+/** Horizontal angle offset to best target (deg). Positive means target is to the right (Limelight convention). */
+    public double getTxDeg(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetObservation.tx().getDegrees();
+    }
+
+/** Vertical angle offset (deg), optional. */
+    public double getTyDeg(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetObservation.ty().getDegrees();
+    }
+
 
 
     
@@ -78,8 +96,11 @@ public class Vision extends SubsystemBase {
     public void periodic() {
 
         
+        @SuppressWarnings("unused")
         double targetID = getTargetID(0);
-        Logger.recordOutput("Vision/Reef currentTag", targetID);
+        
+
+        //Logger.recordOutput("Vision/Reef currentTag", targetID);
         //Logger.recordOutput("Vision/Reef 1_Front Tag", (targetID == 18 || targetID == 7));
         //Logger.recordOutput("Vision/Reef 2_LeftFront Tag", (targetID == 19 || targetID == 6));
         //Logger.recordOutput("Vision/Reef 3_LeftBack Tag", (targetID == 20 || targetID == 11));
@@ -93,6 +114,10 @@ public class Vision extends SubsystemBase {
             io[i].updateInputs(inputs[i]);
             Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
         }
+        Logger.recordOutput("Vision/Camera0/HasTarget", hasTarget(0));
+        Logger.recordOutput("Vision/Camera0/TxDeg", getTxDeg(0));
+        Logger.recordOutput("Vision/Camera0/TyDeg", getTyDeg(0));
+        Logger.recordOutput("Vision/Camera0/TagId", getTargetID(0));
 
         // Initialize logging values
         List<Pose3d> allTagPoses = new LinkedList<>();

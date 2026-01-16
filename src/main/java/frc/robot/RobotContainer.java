@@ -56,6 +56,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.commands.HubLock;
 import frc.robot.subsystems.Turret.Turret;
+import frc.robot.subsystems.vision.VisionIOLimelight;
 
 
 @SuppressWarnings("unused")
@@ -100,14 +101,13 @@ public class RobotContainer {
                 climber = new Climber(new ClimberIOReal());
                 algae = new Algae(new AlgaeIOReal());
                 turret = new Turret();
-                hubLock = new HubLock(turret);
-
-                // this.vision = new Vision(
-                //     drive,
-                //     new VisionIOLimelight("limelight-tag", drive::getRotation)
-                //    // ,new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation)
-                // );
+                
+                this.vision = new Vision(
+                    drive,
+                    new VisionIOLimelight("limelight", drive::getRotation)
+                );
                
+                hubLock = new HubLock(turret, this.vision, 0);
 
                 break;
             case SIM:
@@ -122,6 +122,7 @@ public class RobotContainer {
                     new ModuleIOSim(driveSimulation.getModules()[3]),
                     driveSimulation::setSimulationWorldPose);
 
+
                 this.vision = new Vision(
                     drive,
                     new VisionIOPhotonVisionSim(
@@ -129,7 +130,19 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(
                         camera1Name, robotToCamera1,
-                        driveSimulation::getSimulatedDriveTrainPose));
+                        driveSimulation::getSimulatedDriveTrainPose)
+);
+
+    
+/* 
+                this.vision = new Vision(
+                    drive,
+                    new VisionIOPhotonVisionSim(
+                        camera0Name, robotToCamera0,
+                        driveSimulation::getSimulatedDriveTrainPose),
+                    new VisionIOPhotonVisionSim(
+                        camera1Name, robotToCamera1,
+                        driveSimulation::getSimulatedDriveTrainPose));*/
                 this.elevator = new Elevator(new ElevatorIOSim() {});
                 this.EndEffector = new EndEffector(new EndEffectorIOSim(() -> elevator.getHeight(), driveSimulation) {
                      });
