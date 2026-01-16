@@ -332,7 +332,7 @@ public class RobotContainer {
 }
             /* Intake Coral */
             /* Operator – Turret Hub Lock */
-            if (hubLock != null) {
+            if (turret != null) {
                 operator.rightBumper().whileTrue(hubLock);
 }
 
@@ -583,9 +583,9 @@ public class RobotContainer {
         Logger.recordOutput(
             "FieldSimulation/Algae",
             SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
-    }
+    }}
 
 
 
 
-}
+
