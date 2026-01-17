@@ -117,10 +117,17 @@ public class Vision extends SubsystemBase {
             io[i].updateInputs(inputs[i]);
             Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
         }
+        
         Logger.recordOutput("Vision/Camera0/HasTarget", hasTarget(0));
         Logger.recordOutput("Vision/Camera0/TxDeg", getTxDeg(0));
         Logger.recordOutput("Vision/Camera0/TyDeg", getTyDeg(0));
         Logger.recordOutput("Vision/Camera0/TagId", getTargetID(0));
+
+        if (aprilTagLayout == null) {
+            Logger.recordOutput("Vision/Error", "AprilTag layout is null");
+            return;
+}
+
 
         // Initialize logging values
         List<Pose3d> allTagPoses = new LinkedList<>();

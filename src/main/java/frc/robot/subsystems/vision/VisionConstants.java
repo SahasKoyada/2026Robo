@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems.vision;
 
+import java.io.IOException;
+import java.net.FileNameMap;
 import java.nio.file.Path;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -25,11 +27,19 @@ import edu.wpi.first.wpilibj.Filesystem;
 
 
 @SuppressWarnings("unused")
-public class VisionConstants {
-    // AprilTag layout
-    public static AprilTagFieldLayout aprilTagLayout; {
-    //AprilTagFieldLayout layout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);}
-    
+public final class VisionConstants{
+  public static final AprilTagFieldLayout aprilTagLayout;
+
+  static {
+    try {
+      aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to load AprilTagFieldLayout", e);
+    }
+  }
+
+  private VisionConstants() {}
+
 /* 
       Path json =
         Filesystem.getDeployDirectory().toPath()
@@ -38,14 +48,15 @@ public class VisionConstants {
 */
 
 
-    //= AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    /*/= AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
       try {
           Path json = Filesystem.getDeployDirectory().toPath()
             .resolve("apriltags/2026-rebuilt-andymark.json");
       aprilTagLayout = new AprilTagFieldLayout(json);
       } catch (Exception e) {
       throw new RuntimeException(e);}
-  }
+      */
+  
 
 
     // Camera names, must match names configured on coprocessor
@@ -71,12 +82,11 @@ public class VisionConstants {
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)
     public static double[] cameraStdDevFactors = new double[] {
-        3,0, // LL
+        3.0, // LL
         1.0, // Camera 0
         1.0 // Camera 1
     };
 
     // Multipliers to apply for MegaTag 2 observations
     public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
-    public static double angularStdDevMegatag2Factor = Double.POSITIVE_INFINITY; // No rotation data available
-}
+    public static double angularStdDevMegatag2Factor = Double.POSITIVE_INFINITY;} // No rotation data available
