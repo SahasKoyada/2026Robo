@@ -105,7 +105,7 @@ public class RobotContainer {
                 
                 this.vision = new Vision(
                     drive,
-                    new VisionIOLimelight("limelight", drive::getRotation)
+                    new VisionIOLimelight("limelight-tag", drive::getRotation)
                 );
                
                 hubLock = new HubLock(turret, this.vision, 0);

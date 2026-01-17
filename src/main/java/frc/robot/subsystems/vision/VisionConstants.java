@@ -28,7 +28,8 @@ import edu.wpi.first.wpilibj.Filesystem;
 public class VisionConstants {
     // AprilTag layout
     public static AprilTagFieldLayout aprilTagLayout; {
-    AprilTagFieldLayout layout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    //AprilTagFieldLayout layout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);}
+    
 /* 
       Path json =
         Filesystem.getDeployDirectory().toPath()

@@ -34,6 +34,9 @@ public class HubLock extends Command {
     double txDeg = vision.getTxDeg(cameraIndex);
 
     double duty = 0.0;
+    try {
+      
+    
     if (hasTarget) {
       double err = MathUtil.applyDeadband(txDeg, kDeadbandDeg);
 
@@ -45,6 +48,7 @@ public class HubLock extends Command {
         duty = Math.copySign(Math.max(Math.abs(duty), kMinDuty), duty);
       }
     }
+   
 
     turret.setDutyCycle(duty);
 
@@ -55,7 +59,10 @@ public class HubLock extends Command {
           + " duty=" + String.format("%.3f", duty));
       lastPrint = now;
     }
-  }
+  } catch (Exception e) {
+      System.out.println("hi");}
+      
+    }
 
   @Override
   public void end(boolean interrupted) {

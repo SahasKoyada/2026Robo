@@ -40,6 +40,7 @@ public class Vision extends SubsystemBase {
     double targetID = 110;
 
     public Vision(VisionConsumer consumer, VisionIO... io) {
+        
         this.consumer = consumer;
         this.io = io;
 
