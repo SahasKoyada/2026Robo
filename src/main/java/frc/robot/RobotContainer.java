@@ -57,6 +57,7 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.commands.HubLock;
 import frc.robot.subsystems.Turret.Turret;
 import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.commands.AlignToHub;
 
 
 @SuppressWarnings("unused")
@@ -277,7 +278,8 @@ public class RobotContainer {
         if (Constants.currentMode == Constants.Mode.REAL) {
 
             driver.x()
-            .onTrue(new AlignToReef(drive, reefSide.LEFT).withTimeout(1.2));
+            .whileTrue(new AlignToHub(drive, vision, 0));
+            //.onTrue(new AlignToReef(drive, reefSide.LEFT).withTimeout(1.2));
             driver.y()
             .onTrue(new AlignToReef(drive, reefSide.CENTER).withTimeout(1.2));
             driver.b()
