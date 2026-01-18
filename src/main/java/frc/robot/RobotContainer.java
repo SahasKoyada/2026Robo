@@ -5,6 +5,8 @@ import static frc.robot.subsystems.vision.VisionConstants.camera1Name;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 
+import java.security.Principal;
+
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -58,6 +60,9 @@ import frc.robot.commands.HubLock;
 import frc.robot.subsystems.Turret.Turret;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.commands.AlignToHub;
+import frc.robot.subsystems.Indexer.Indexer;
+import frc.robot.subsystems.Transfer.Transfer;
+
 
 
 @SuppressWarnings("unused")
@@ -71,6 +76,8 @@ public class RobotContainer {
     private Algae algae;
     private Turret turret;
     private Command hubLock;
+    private Indexer indexer;
+    private Transfer transfer;
 
 
     // Controller
@@ -102,6 +109,8 @@ public class RobotContainer {
                 climber = new Climber(new ClimberIOReal());
                 algae = new Algae(new AlgaeIOReal());
                 turret = new Turret();
+                indexer = new Indexer();
+                transfer = new Transfer();
                 
                 this.vision = new Vision(
                     drive,
@@ -285,12 +294,14 @@ public class RobotContainer {
             driver.b()
             .onTrue(new AlignToReef(drive, reefSide.RIGHT).withTimeout(1.2));
 
-            operator.y()
-            .whileTrue(algae.runTeleop(() -> 0.4))
-            .onFalse(algae.runTeleop(() -> 0.0));
-            operator.a()
-            .whileTrue(algae.runTeleop(() -> -0.4))
-            .onFalse(algae.runTeleop(() -> 0.0));
+            //operator.y()
+            //.whileTrue(algae.runTeleop(() -> 0.4))
+            //.onFalse(algae.runTeleop(() -> 0.0));
+            operator.y().whileTrue(indexer.runPercent(0.6));
+            //operator.a()
+            //.whileTrue(algae.runTeleop(() -> -0.4))
+            //.onFalse(algae.runTeleop(() -> 0.0));
+            operator.x().whileTrue(transfer.runPercent(0.6));
 
             operator.x()
             .whileTrue(algae.runTeleopIntake(() -> -1))

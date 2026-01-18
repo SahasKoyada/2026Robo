@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-@SuppressWarnings("removal")
+@SuppressWarnings({ "removal", "unused" })
 public class Turret extends SubsystemBase {
   private static final int kMotorCanId = 41;
 
@@ -28,7 +28,6 @@ public class Turret extends SubsystemBase {
   private static final double kMinDutyToMove = 0.08;
 
   private double lastPrintTimeSec = 0.0;
-  @SuppressWarnings("unused")
   private double lastCmdDuty = 0.0;
 
   public Turret() {
