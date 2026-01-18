@@ -318,12 +318,14 @@ public class RobotContainer {
             .whileTrue(algae.runTeleopIntake(() -> 1))
             .onFalse(algae.runTeleopIntake(() -> 0.0));
 
-            operator.povUp()
-            .whileTrue(elevator.setHeight(ElevatorHeights.L3))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
-            .onTrue(EndEffector.angle(PivotAngles.L3))
-            ;
-    
+            operator.povUp().whileTrue(climber.runPercent(0.2));
+            operator.povDown().whileTrue(climber.runPercent(-0.2));
+
+            //.whileTrue(elevator.setHeight(ElevatorHeights.L3))
+            //.whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
+            //.onTrue(EndEffector.angle(PivotAngles.L3))
+            
+    /* 
             operator.povLeft()
             .whileTrue(elevator.setHeight(ElevatorHeights.L2))
             .whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
@@ -342,6 +344,9 @@ public class RobotContainer {
             .whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
             .onTrue(EndEffector.angle(PivotAngles.STOWED))
            ;
+
+*/
+
 
             /* Intake Coral */
             /* 
@@ -400,8 +405,8 @@ public class RobotContainer {
             .whileTrue(climber.runTeleop(() -> -climberController.getY()))
             .onFalse(climber.runTeleop(() -> 0));
 
-            climberController.button(11).onTrue(climber.runLauncher(-0.3)).onFalse(climber.runLauncher(0.0));
-            climberController.button(12).onTrue(climber.runLauncher(0.3)).onFalse(climber.runLauncher(0.0));
+            //climberController.button(11).onTrue(climber.runLauncher(-0.3)).onFalse(climber.runLauncher(0.0));
+            //climberController.button(12).onTrue(climber.runLauncher(0.3)).onFalse(climber.runLauncher(0.0));
 
 
             /*
@@ -453,7 +458,7 @@ public class RobotContainer {
             .onTrue(EndEffector.angle(PivotAngles.STOWED))
             ;
 
-            climberController.button(10).whileTrue(climber.autoLaunch());
+            //climberController.button(10).whileTrue(climber.autoLaunch());
 
         }         
         else if (Constants.currentMode == Constants.Mode.SIM) {
