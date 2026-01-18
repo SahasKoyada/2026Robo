@@ -365,6 +365,8 @@ public class RobotContainer {
             /* Operator – Turret Hub Lock */
             if (turret != null) {
                 operator.rightBumper().whileTrue(hubLock);
+
+            operator.rightTrigger().whileTrue(turret.runShooterPercent((0.8)));
 }
 
             /*

@@ -1,23 +1,37 @@
 package frc.robot.subsystems.Turret;
-
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj2.command.Command;
+
 
 @SuppressWarnings({ "removal", "unused" })
 public class Turret extends SubsystemBase {
   private static final int kMotorCanId = 41;
+  private static final int kShooterCanId = 40;
+
 
   private final SparkMax motor = new SparkMax(kMotorCanId, MotorType.kBrushless);
   private final RelativeEncoder encoder = motor.getEncoder();
+
+  private final TalonFX shooterMotor = new TalonFX(kShooterCanId);
+  private final VoltageOut shooterVoltsReq = new VoltageOut(0.0);
+  private static final double kShooterMaxVolts = 12.0;
 
   private static final double kMinRot = -1.0;
   private static final double kMaxRot =  1.0;
@@ -43,6 +57,25 @@ public class Turret extends SubsystemBase {
 
     encoder.setPosition(0.0);
     System.out.println("[Turret] init: CAN=" + kMotorCanId + " inverted=false brake=true");
+
+    TalonFXConfiguration shooterCfg = new TalonFXConfiguration();
+
+    MotorOutputConfigs shooterOut = new MotorOutputConfigs();
+    shooterOut.NeutralMode = NeutralModeValue.Coast;
+    shooterOut.Inverted = InvertedValue.CounterClockwise_Positive;
+    shooterCfg.MotorOutput = shooterOut;
+
+    CurrentLimitsConfigs shooterLimits = new CurrentLimitsConfigs();
+    shooterLimits.SupplyCurrentLimitEnable = true;
+    shooterLimits.SupplyCurrentLimit = 60.0;
+    shooterCfg.CurrentLimits = shooterLimits;
+
+    OpenLoopRampsConfigs shooterRamps = new OpenLoopRampsConfigs();
+    shooterRamps.VoltageOpenLoopRampPeriod = 0.10;
+    shooterCfg.OpenLoopRamps = shooterRamps;
+
+    shooterMotor.getConfigurator().apply(shooterCfg);
+
   }
 
   public double getMotorRotations() {
@@ -104,7 +137,21 @@ public class Turret extends SubsystemBase {
   private static String fmt(double v) {
     return String.format("%.3f", v);
   }
+
+public void setShooterVolts(double volts) {
+  double cmd = MathUtil.clamp(volts, -kShooterMaxVolts, kShooterMaxVolts);
+  shooterMotor.setControl(shooterVoltsReq.withOutput(cmd));
 }
+
+public void stopShooter() {
+  shooterMotor.setControl(shooterVoltsReq.withOutput(0.0));
+}
+
+public Command runShooterPercent(double percent) {
+  return runEnd(() -> setShooterVolts(percent * 12.0), this::stopShooter);
+}
+}
+
 
 
 
