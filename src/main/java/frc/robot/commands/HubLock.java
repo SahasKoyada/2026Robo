@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Turret.Turret;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.util.LimelightHelpers;
+
 
 
 @SuppressWarnings("unused")
@@ -35,8 +37,6 @@ public class HubLock extends Command {
 
     double duty = 0.0;
     try {
-      
-    
     if (hasTarget) {
       double err = MathUtil.applyDeadband(txDeg, kDeadbandDeg);
 
@@ -47,7 +47,17 @@ public class HubLock extends Command {
       if (Math.abs(duty) > 1e-6) {
         duty = Math.copySign(Math.max(Math.abs(duty), kMinDuty), duty);
       }
-    }
+    
+    double distMeters = LimelightHelpers.getTargetPose3d_CameraSpace("limelight-tag")
+      .getTranslation()
+      .getNorm();
+    turret.enableAngler(true);
+    turret.setAnglerDistanceMeters(distMeters);
+    } else {
+
+    turret.enableAngler(false);
+  }
+  
    
 
     turret.setDutyCycle(duty);
@@ -67,6 +77,7 @@ public class HubLock extends Command {
   @Override
   public void end(boolean interrupted) {
     turret.stop();
+    turret.enableAngler(false);
     System.out.println("[HubLock] end interrupted=" + interrupted);
   }
 

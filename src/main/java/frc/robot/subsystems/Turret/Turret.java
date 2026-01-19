@@ -18,6 +18,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.geometry.Pose3d;
+import frc.robot.util.LimelightHelpers;
+
 
 
 @SuppressWarnings({ "removal", "unused" })
@@ -25,6 +28,7 @@ public class Turret extends SubsystemBase {
   private static final int kMotorCanId = 41;
   private static final int kShooterCanId = 40;
   private static final int kShooterNeoCanId = 42;
+  private static final int kAnglerCanId = 43;
 
 
 
@@ -37,6 +41,20 @@ public class Turret extends SubsystemBase {
 
   private final SparkMax shooterNeo = new SparkMax(kShooterNeoCanId, MotorType.kBrushless);
   private static final int kShooterNeoCurrentLimit = 40;
+
+  private final SparkMax angler = new SparkMax(kAnglerCanId, MotorType.kBrushless);
+  private final RelativeEncoder eRelativeEncoder = angler.getEncoder();
+  private static final int kAnglerCurrentLimit = 30;
+  private static final boolean kAnglerInverted = false;
+  private static final double kAnglerKpVoltsPerRot = 6.0;
+  private static final double kAnglerMaxVolts = 4.0;
+  private static final double kAnglerTolRot = 0.01;
+  private static final double kDistMinM = 0.75;
+  private static final double kDistMaxM = 4.00;
+  private static final double kAnglerMinRot = 0.00;
+  private static final double kAnglerMaxRot = 0.80;
+  private double anglerSetpointRot = 0.0;
+  private boolean anglerEnabled = false;  
 
   private static final double kMinRot = -1.0;
   private static final double kMaxRot =  1.0;
@@ -75,6 +93,18 @@ public class Turret extends SubsystemBase {
       SparkBase.ResetMode.kResetSafeParameters,
       SparkBase.PersistMode.kPersistParameters);
 
+    SparkMaxConfig anglerCfg = new SparkMaxConfig();
+    anglerCfg.idleMode(IdleMode.kBrake);
+    anglerCfg.inverted(false);
+    anglerCfg.smartCurrentLimit(kAnglerCurrentLimit);
+
+    angler.configure(
+      anglerCfg,
+      SparkBase.ResetMode.kResetSafeParameters,
+      SparkBase.PersistMode.kPersistParameters);
+    
+      eRelativeEncoder.setPosition(0.0);
+   
 
 
     MotorOutputConfigs shooterOut = new MotorOutputConfigs();
@@ -168,6 +198,48 @@ public void stopShooter() {
 
 public Command runShooterPercent(double percent) {
   return runEnd(() -> setShooterVolts(percent * 12.0), this::stopShooter);
+}
+public double getAnglerRotations() {
+  return eRelativeEncoder.getPosition();
+}
+
+public void enableAngler(boolean enabled) {
+  anglerEnabled = enabled;
+  if (!enabled) {
+    angler.setVoltage(0.0);
+  }
+}
+
+public void setAnglerDistanceMeters(double distanceM) {
+  double d = MathUtil.clamp(distanceM, kDistMinM, kDistMaxM);
+  double t = (d - kDistMinM) / (kDistMaxM - kDistMinM);
+  anglerSetpointRot = kAnglerMinRot + t * (kAnglerMaxRot - kAnglerMinRot);
+}
+
+public void updateAngler() {
+  if (!anglerEnabled) {
+    return;
+  }
+
+  double err = anglerSetpointRot - getAnglerRotations();
+  if (Math.abs(err) <= kAnglerTolRot) {
+    angler.setVoltage(0.0);
+    return;
+  }
+
+  double volts = MathUtil.clamp(err * kAnglerKpVoltsPerRot, -kAnglerMaxVolts, kAnglerMaxVolts);
+  angler.setVoltage(volts);
+}
+
+public double getDistanceToTagMeters(String limelightName) {
+  Pose3d cam = LimelightHelpers.getTargetPose3d_CameraSpace(limelightName);
+  double x = cam.getX();
+  double z = cam.getZ();
+  return Math.hypot(x, z);
+}
+@Override
+public void periodic(){
+  updateAngler();
 }
 }
 
