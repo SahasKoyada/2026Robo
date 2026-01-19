@@ -301,11 +301,14 @@ public class RobotContainer {
             //operator.a()
             //.whileTrue(algae.runTeleop(() -> -0.4))
             //.onFalse(algae.runTeleop(() -> 0.0));
-            operator.x().whileTrue(transfer.runPercent(0.6));
+            operator.a().whileTrue(transfer.runPercent(0.6));
 
             operator.x()
-            .whileTrue(algae.runTeleopIntake(() -> -1))
-            .onFalse(algae.runTeleopIntake(() -> 0.0));
+            //.whileTrue(algae.runTeleopIntake(() -> -1))
+            //.onFalse(algae.runTeleopIntake(() -> 0.0));
+            .whileTrue(indexer.runPercent(0.6))
+            .whileTrue(transfer.runPercent(0.6))
+            ;
             operator.b()
             .whileTrue(algae.runTeleopIntake(() -> 1))
             .onFalse(algae.runTeleopIntake(() -> 0.0));

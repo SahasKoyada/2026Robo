@@ -24,6 +24,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class Turret extends SubsystemBase {
   private static final int kMotorCanId = 41;
   private static final int kShooterCanId = 40;
+  private static final int kShooterNeoCanId = 42;
+
 
 
   private final SparkMax motor = new SparkMax(kMotorCanId, MotorType.kBrushless);
@@ -32,6 +34,9 @@ public class Turret extends SubsystemBase {
   private final TalonFX shooterMotor = new TalonFX(kShooterCanId);
   private final VoltageOut shooterVoltsReq = new VoltageOut(0.0);
   private static final double kShooterMaxVolts = 12.0;
+
+  private final SparkMax shooterNeo = new SparkMax(kShooterNeoCanId, MotorType.kBrushless);
+  private static final int kShooterNeoCurrentLimit = 40;
 
   private static final double kMinRot = -1.0;
   private static final double kMaxRot =  1.0;
@@ -59,6 +64,18 @@ public class Turret extends SubsystemBase {
     System.out.println("[Turret] init: CAN=" + kMotorCanId + " inverted=false brake=true");
 
     TalonFXConfiguration shooterCfg = new TalonFXConfiguration();
+    
+    SparkMaxConfig shooterNeoCfg = new SparkMaxConfig();
+    shooterNeoCfg.idleMode(IdleMode.kCoast);
+    shooterNeoCfg.inverted(true);
+    shooterNeoCfg.smartCurrentLimit(kShooterNeoCurrentLimit);
+
+    shooterNeo.configure(
+      shooterNeoCfg,
+      SparkBase.ResetMode.kResetSafeParameters,
+      SparkBase.PersistMode.kPersistParameters);
+
+
 
     MotorOutputConfigs shooterOut = new MotorOutputConfigs();
     shooterOut.NeutralMode = NeutralModeValue.Coast;
@@ -140,11 +157,13 @@ public class Turret extends SubsystemBase {
 
 public void setShooterVolts(double volts) {
   double cmd = MathUtil.clamp(volts, -kShooterMaxVolts, kShooterMaxVolts);
-  shooterMotor.setControl(shooterVoltsReq.withOutput(cmd));
+  shooterMotor.setControl(shooterVoltsReq.withOutput(cmd));//kraken
+  shooterNeo.setVoltage(cmd);                               //neo
 }
 
 public void stopShooter() {
-  shooterMotor.setControl(shooterVoltsReq.withOutput(0.0));
+  shooterMotor.setControl(shooterVoltsReq.withOutput(0.0));//kraken
+  shooterNeo.setVoltage(0.0);
 }
 
 public Command runShooterPercent(double percent) {
