@@ -131,6 +131,9 @@ public class RobotContainer {
                     new ModuleIOSim(driveSimulation.getModules()[2]),
                     new ModuleIOSim(driveSimulation.getModules()[3]),
                     driveSimulation::setSimulationWorldPose);
+                turret = new Turret();
+                indexer = new Indexer();
+                transfer = new Transfer();
 
 
                 this.vision = new Vision(
@@ -141,7 +144,10 @@ public class RobotContainer {
                     new VisionIOPhotonVisionSim(
                         camera1Name, robotToCamera1,
                         driveSimulation::getSimulatedDriveTrainPose)
-);
+                );
+                hubLock = new HubLock(turret, this.vision, 0);
+
+
 
     
 /* 
@@ -490,6 +496,27 @@ public class RobotContainer {
     }
 
     public void setNamedCommands() {
+        NamedCommands.registerCommand(
+        "AimAndShoot",
+        hubLock.withTimeout(1.0)
+            .andThen(turret.runShooterPercent(0.8).withTimeout(2.0))
+            .andThen(Commands.parallel(
+                indexer.runPercent(0.6),
+                transfer.runPercent(0.6)
+            ).withTimeout(1.0))
+);
+
+
+        /* 
+        NamedCommands.registerCommand(camera1Name,
+        hubLock.withTimeout(1.0)
+          .andThen(Commands.parallel(
+              turret.runShooterPercent(0.8),
+              indexer.runPercent(0.6),
+              transfer.runPercent(0.6)) 
+        ));
+*/
+
         /*
          * Raise Elevator to L3
          * Pivot Endeffector to L3
@@ -528,7 +555,7 @@ public class RobotContainer {
         /*
          * Raise Elevator to ALgae Lower
          * Pivot Endeffector to Stowed
-         */
+         
         NamedCommands.registerCommand("Prep_Algae", 
         elevator.runOnceHeight(ElevatorHeights.LOWER_ALGAE)
         .alongWith(EndEffector.angle(PivotAngles.STOWED))
@@ -536,7 +563,7 @@ public class RobotContainer {
         .alongWith(Commands.print("NamedCommand: Lower Algae"))
         .withTimeout(2)
         );
-        
+        */
 
         NamedCommands.registerCommand("Reset",
         elevator.runOnceHeight(ElevatorHeights.STOWED)
