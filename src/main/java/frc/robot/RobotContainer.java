@@ -59,9 +59,12 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.commands.HubLock;
 import frc.robot.subsystems.Turret.Turret;
 import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.commands.AlignToHub;
 import frc.robot.subsystems.Indexer.Indexer;
 import frc.robot.subsystems.Transfer.Transfer;
+import frc.robot.subsystems.LED.LED;
+import frc.robot.commands.SetLED;
 
 
 
@@ -78,6 +81,8 @@ public class RobotContainer {
     private Command hubLock;
     private Indexer indexer;
     private Transfer transfer;
+    private LED led;
+    private Command SetLED;
 
 
     // Controller
@@ -111,13 +116,17 @@ public class RobotContainer {
                 turret = new Turret();
                 indexer = new Indexer();
                 transfer = new Transfer();
+                led = new LED();
                 
                 this.vision = new Vision(
                     drive,
-                    new VisionIOLimelight("limelight-tag", drive::getRotation)
+                    new VisionIOLimelight("limelight-tag", drive::getRotation),
+                    new VisionIOPhotonVision(camera0Name, robotToCamera0),
+                    new VisionIOPhotonVision(camera1Name, robotToCamera1)
                 );
                
                 hubLock = new HubLock(turret, this.vision, 0);
+                SetLED = new SetLED(led, 0, 0, 0, false);
 
                 break;
             case SIM:
@@ -303,13 +312,20 @@ public class RobotContainer {
             //operator.y()
             //.whileTrue(algae.runTeleop(() -> 0.4))
             //.onFalse(algae.runTeleop(() -> 0.0));
-            operator.y().whileTrue(indexer.runPercent(0.6));
+            operator.y()
+            .onTrue(new SetLED(led, 255, 255, 0, false))
+            .whileTrue(indexer.runPercent(0.6)
+            
+            );
             //operator.a()
             //.whileTrue(algae.runTeleop(() -> -0.4))
             //.onFalse(algae.runTeleop(() -> 0.0));
-            operator.a().whileTrue(transfer.runPercent(0.6));
+            operator.a()
+            .onTrue(new SetLED(led, 0, 255, 255, false))
+            .whileTrue(transfer.runPercent(0.6));
 
             operator.x()
+            .onTrue(new SetLED(led, 0, 255, 0, false))
             //.whileTrue(algae.runTeleopIntake(() -> -1))
             //.onFalse(algae.runTeleopIntake(() -> 0.0));
             .whileTrue(indexer.runPercent(0.6))
