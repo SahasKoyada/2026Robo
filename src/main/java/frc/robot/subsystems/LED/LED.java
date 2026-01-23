@@ -7,8 +7,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LED extends SubsystemBase {
-  private static final int LED_PWM_PORT = 1;   
-  private static final int LED_LENGTH   = 60;  
+  private static final int LED_PWM_PORT = 1;
+  private static final int LED_LENGTH = 60;
 
   private final AddressableLED led;
   private final AddressableLEDBuffer buffer;
@@ -20,9 +20,7 @@ public class LED extends SubsystemBase {
     buffer = new AddressableLEDBuffer(LED_LENGTH);
 
     led.setLength(buffer.getLength());
-
     setSolid(255, 255, 255);
-    led.setData(buffer);
     led.start();
   }
 
@@ -38,14 +36,18 @@ public class LED extends SubsystemBase {
       } else {
         setSolid(255, 255, 255);
       }
-      led.setData(buffer);
       lastAlliance = alliance;
     }
   }
 
-  private void setSolid(int r, int g, int b) {
+  public void setSolid(int r, int g, int b) {
     for (int i = 0; i < buffer.getLength(); i++) {
       buffer.setRGB(i, r, g, b);
     }
+    led.setData(buffer);
+  }
+
+  public void restoreAlliance() {
+    lastAlliance = null;
   }
 }
