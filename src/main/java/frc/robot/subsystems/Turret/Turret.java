@@ -25,6 +25,7 @@ import frc.robot.util.LimelightHelpers;
 
 @SuppressWarnings({ "removal", "unused" })
 public class Turret extends SubsystemBase {
+  private static int hello = 1;
   private static final int kMotorCanId = 41;
   private static final int kShooterCanId = 40;
   private static final int kShooterNeoCanId = 42;

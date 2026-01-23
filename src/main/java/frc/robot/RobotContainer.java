@@ -33,14 +33,9 @@ import frc.robot.Constants.PivotAngles;
 import frc.robot.commands.AlignToReef;
 import frc.robot.commands.AlignToReef.reefSide;
 import frc.robot.commands.DriveCommands;
-import frc.robot.subsystems.Algae.Algae;
-import frc.robot.subsystems.Algae.AlgaeIOReal;
 import frc.robot.subsystems.Climber.Climber;
 import frc.robot.subsystems.Climber.ClimberIOReal;
-import frc.robot.subsystems.Elevator.Elevator;
-import frc.robot.subsystems.Elevator.ElevatorIO;
-import frc.robot.subsystems.Elevator.ElevatorIORealTalon;
-import frc.robot.subsystems.Elevator.ElevatorIOSim;
+
 import frc.robot.subsystems.EndEffector.EndEffector;
 import frc.robot.subsystems.EndEffector.EndEffectorIO;
 import frc.robot.subsystems.EndEffector.EndEffectorIOReal;
@@ -69,11 +64,8 @@ import frc.robot.subsystems.Transfer.Transfer;
 public class RobotContainer {
     private final Drive drive;
     private Vision vision;
-    private Elevator elevator;
     private Climber climber;
     private SwerveDriveSimulation driveSimulation = null;
-    private EndEffector EndEffector;
-    private Algae algae;
     private Turret turret;
     private Command hubLock;
     private Indexer indexer;
@@ -104,10 +96,7 @@ public class RobotContainer {
                     new ModuleIOSpark(3),
                     (pose) -> {
                 });
-                elevator = new Elevator(new ElevatorIORealTalon());
-                EndEffector = new EndEffector(new EndEffectorIOReal());
                 climber = new Climber(new ClimberIOReal());
-                algae = new Algae(new AlgaeIOReal());
                 turret = new Turret();
                 indexer = new Indexer();
                 transfer = new Transfer();
@@ -147,22 +136,6 @@ public class RobotContainer {
                 );
                 hubLock = new HubLock(turret, this.vision, 0);
 
-
-
-    
-/* 
-                this.vision = new Vision(
-                    drive,
-                    new VisionIOPhotonVisionSim(
-                        camera0Name, robotToCamera0,
-                        driveSimulation::getSimulatedDriveTrainPose),
-                    new VisionIOPhotonVisionSim(
-                        camera1Name, robotToCamera1,
-                        driveSimulation::getSimulatedDriveTrainPose));*/
-                this.elevator = new Elevator(new ElevatorIOSim() {});
-                this.EndEffector = new EndEffector(new EndEffectorIOSim(() -> elevator.getHeight(), driveSimulation) {
-                     });
-
                 break;
             default:
                 // Replayed robot, disable IO implementations
@@ -174,8 +147,6 @@ public class RobotContainer {
                     new ModuleIO() {},
                     (pose) -> {});
                 this.vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
-                this.elevator = new Elevator(new ElevatorIO(){});
-                this.EndEffector = new EndEffector(new EndEffectorIO() {});
             break;
         }
 
@@ -192,17 +163,6 @@ public class RobotContainer {
             .andThen( new PathPlannerAuto("range & score", false)) //Resetting Odo, run up on the reef and drop, and then back out and go to feeder station
         );
 
-        autoChooser.addOption("MECK) Align Left",
-        new PathPlannerAuto("range into reef", true) // Get in Vision Range of the reef & prep L2
-            .andThen( new AlignToReef(drive, reefSide.RIGHT).withTimeout(3)) // Align using LL
-            .andThen( new PathPlannerAuto("range & station", true)) //Resetting Odo, run up on the reef and drop, and then back out and go to feeder station
-            .andThen( new PathPlannerAuto("range & score", true)) //Resetting Odo, run up on the reef and drop, and then back out and go to feeder station
-        );
-
-        autoChooser.addOption("MECK) LeftSide Auto",
-        new PathPlannerAuto("MECK) RightSide Auto", true) // Get in Vision Range of the reef & prep L2
-        );
-
         // Set up SysId routines
         autoChooser.addOption("Drive Wheel Radius Characterization",
             DriveCommands.wheelRadiusCharacterization(drive)
@@ -210,25 +170,6 @@ public class RobotContainer {
         autoChooser.addOption("Drive Simple FF Characterization",
             DriveCommands.feedforwardCharacterization(drive)
         );
-
-        // autoChooser.addOption(
-        //     "Drive SysId (Quasistatic Forward)",
-        //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward)
-        // );
-        // autoChooser.addOption(
-        //     "Drive SysId (Quasistatic Reverse)",
-        //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)
-        // );
-        // autoChooser.addOption("Drive SysId (Dynamic Forward)",
-        //     drive.sysIdDynamic(SysIdRoutine.Direction.kForward)
-        // );
-        // autoChooser.addOption("Drive SysId (Dynamic Reverse)",
-        //     drive.sysIdDynamic(SysIdRoutine.Direction.kReverse)
-        // );
-
-        // autoChooser.addOption("rightSideAuto",
-        //     new PathPlannerAuto("Auto Name", true);
-        // );
 
         configureButtonBindings();
     }
@@ -292,122 +233,26 @@ public class RobotContainer {
 
         if (Constants.currentMode == Constants.Mode.REAL) {
 
+            /* Driver - Align to the Hub */
             driver.x()
             .whileTrue(new AlignToHub(drive, vision, 0));
             //.onTrue(new AlignToReef(drive, reefSide.LEFT).withTimeout(1.2));
-            driver.y()
-            .onTrue(new AlignToReef(drive, reefSide.CENTER).withTimeout(1.2));
-            driver.b()
-            .onTrue(new AlignToReef(drive, reefSide.RIGHT).withTimeout(1.2));
-
-            //operator.y()
-            //.whileTrue(algae.runTeleop(() -> 0.4))
-            //.onFalse(algae.runTeleop(() -> 0.0));
-            operator.y().whileTrue(indexer.runPercent(0.6));
-            //operator.a()
-            //.whileTrue(algae.runTeleop(() -> -0.4))
-            //.onFalse(algae.runTeleop(() -> 0.0));
-            operator.a().whileTrue(transfer.runPercent(0.6));
-
-            operator.x()
-            //.whileTrue(algae.runTeleopIntake(() -> -1))
-            //.onFalse(algae.runTeleopIntake(() -> 0.0));
-            .whileTrue(indexer.runPercent(0.6))
-            .whileTrue(transfer.runPercent(0.6))
-            ;
-            operator.b()
-            .whileTrue(algae.runTeleopIntake(() -> 1))
-            .onFalse(algae.runTeleopIntake(() -> 0.0));
-
-            climberController.button(6)
-            .whileTrue(algae.runTeleopIntake(() -> -1))
-            .onFalse(algae.runTeleopIntake(() -> 0.0));
-
-            climberController.button(5)
-            .whileTrue(algae.runTeleopIntake(() -> 1))
-            .onFalse(algae.runTeleopIntake(() -> 0.0));
-
-            operator.povUp().whileTrue(climber.runPercent(0.2));
-            operator.povDown().whileTrue(climber.runPercent(-0.2));
-
-            //.whileTrue(elevator.setHeight(ElevatorHeights.L3))
-            //.whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
-            //.onTrue(EndEffector.angle(PivotAngles.L3))
             
-    /* 
-            operator.povLeft()
-            .whileTrue(elevator.setHeight(ElevatorHeights.L2))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
-            .onTrue(EndEffector.angle(PivotAngles.L2))
-            ;
-
-            operator.povRight()
-            .whileTrue(elevator.setHeight(ElevatorHeights.LOWER_ALGAE))
-            .whileTrue(algae.runPositionandIntake(() -> AlgaeAngles.LOWER_ALGAE, () -> .9))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.LOWER_ALGAE)) // Not supposed to be called twice, but it works so I will leave it alone
-            .onTrue(EndEffector.angle(PivotAngles.STOWED))
-            ;
-
-            operator.povDown()
-            .whileTrue(elevator.setHeight(0))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
-            .onTrue(EndEffector.angle(PivotAngles.STOWED))
-           ;
-
-*/
-
-
-            /* Intake Coral */
-            /* 
-            operator.leftBumper()
-            .onTrue(EndEffector.ejecter(0.7))
-            .onFalse(EndEffector.ejecter(0));
-*/
+            /* Operator - Turret Manual Control */
             if (turret != null) {
                 operator.leftBumper().whileTrue(
                     Commands.run(() -> turret.setDutyCycle(0.2), turret)
-                ).onFalse(
+                )
+                .onFalse(
                     Commands.runOnce(turret::stop, turret)
                 );
-}
-            /* Intake Coral */
+            }
+
             /* Operator – Turret Hub Lock */
             if (turret != null) {
                 operator.rightBumper().whileTrue(hubLock);
-
-            operator.rightTrigger().whileTrue(turret.runShooterPercent((0.8)));
-}
-
-            /*
-            operator.rightBumper()
-            .onTrue(EndEffector.ejecter(-0.7))
-            .onFalse(EndEffector.ejecter(0));
-*/
-
-            /* Intaking Setup Button - Move elevator to intake height, move intake to intake angle, and Intake coral */
-            operator.axisMagnitudeGreaterThan(XboxController.Axis.kLeftTrigger.value, 0.1)
-            .whileTrue(elevator.setHeight(ElevatorHeights.INTAKE_HEIGHT))
-            .onTrue(algae.runPosition(() -> AlgaeAngles.STOWED))
-            .onTrue(EndEffector.setAngleandIntake(PivotAngles.INTAKE, 0.7))
-            .onFalse(EndEffector.ejecter(0))
-            ;
-
-            /* Manual Control for Elevator */
-            operator.axisMagnitudeGreaterThan(XboxController.Axis.kLeftY.value, 0.1)
-            .whileTrue(elevator.runTeleop(() -> -operator.getLeftY()/1.4))
-            .onFalse(elevator.runTeleop(() -> 0))
-            ;
-
-            /* Manual Control for Pivot intake */
-            operator.axisMagnitudeGreaterThan(XboxController.Axis.kRightY.value, 0.1)
-            .whileTrue(EndEffector.runTeleop(() -> -operator.getRightY()/3, ()-> 0, () -> 0))
-            .onFalse(EndEffector.runTeleop(() -> 0, ()-> 0, () -> 0));
-
-            
-            /* Eject Coral CMD */
-            operator.axisMagnitudeGreaterThan(XboxController.Axis.kRightTrigger.value, 0.1)
-            .whileTrue(EndEffector.runTeleop(() -> 0, ()-> 0, () -> -operator.getRightTriggerAxis()))
-            .onFalse(EndEffector.runTeleop(() -> 0, ()-> 0, () -> 0));
+                operator.rightTrigger().whileTrue(turret.runShooterPercent((0.8)));
+            }
 
             /* Climbing Controls */
             climberController.axisMagnitudeGreaterThan(Joystick.AxisType.kY.value, 0.2)
@@ -415,61 +260,9 @@ public class RobotContainer {
             .and(climberController.povCenter())
             .whileTrue(climber.runTeleop(() -> -climberController.getY()))
             .onFalse(climber.runTeleop(() -> 0));
-
-            //climberController.button(11).onTrue(climber.runLauncher(-0.3)).onFalse(climber.runLauncher(0.0));
-            //climberController.button(12).onTrue(climber.runLauncher(0.3)).onFalse(climber.runLauncher(0.0));
-
-
             /*
-             * Elevator: Move to Lower Algae Level
-             * EndEffector: Angle to Stow
-             * Algae: Move to Lower Algae Level, Spin Wheels in
+             * EXAMPLE FROM 2025 ^
              */
-            climberController.povUp()
-            .whileTrue(elevator.setHeight(ElevatorHeights.UPPER_ALGAE))
-            .whileTrue(algae.runPositionandIntake(() -> AlgaeAngles.UPPER_ALGAE, () -> .9))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.UPPER_ALGAE))
-            .onTrue(EndEffector.angle(PivotAngles.STOWED))
-            ;
-            /*
-             * Elevator: Move to Ground Algae Level
-             * EndEffector: Angle to Stow
-             * Algae: Move to Ground Algae Level, Spin Wheels in
-             */
-            climberController.povDown()
-            .whileTrue(elevator.setHeight(ElevatorHeights.GROUND_ALGAE))
-            .whileTrue(algae.runPositionandIntake(() -> AlgaeAngles.GROUND_ALGAE, () -> .75))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.GROUND_ALGAE))
-            .onTrue(EndEffector.angle(PivotAngles.GROUND_ALGAE))
-            ;
-
-
-            /*
-             * Elevator: Move to Lower Algae Level
-             * EndEffector: Angle to Stow
-             * Algae: Move to Lower Algae Level, Spin Wheels in
-             */
-            climberController.povLeft()
-            .whileTrue(elevator.setHeight(ElevatorHeights.LOWER_ALGAE))
-            .whileTrue(algae.runPositionandIntake(() -> AlgaeAngles.LOWER_ALGAE, () -> .75))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.LOWER_ALGAE))
-            .onTrue(EndEffector.angle(PivotAngles.STOWED))
-            ;
-
-
-            /* Robot to Scoring
-             * Elevator: Move to Lower Algae Level
-             * EndEffector: Angle to Stow
-             * Algae: Move to Lower Algae Level, Spin Wheels in
-             */            
-            climberController.povRight()
-            .whileTrue(elevator.setHeight(ElevatorHeights.SCORE_ALGAE))
-            .whileTrue(algae.runPositionandIntake(() -> AlgaeAngles.SCORE_ALGAE, () -> .75))
-            .whileTrue(algae.runPosition(() -> AlgaeAngles.SCORE_ALGAE))
-            .onTrue(EndEffector.angle(PivotAngles.STOWED))
-            ;
-
-            //climberController.button(10).whileTrue(climber.autoLaunch());
 
         }         
         else if (Constants.currentMode == Constants.Mode.SIM) {
@@ -504,90 +297,7 @@ public class RobotContainer {
                 indexer.runPercent(0.6),
                 transfer.runPercent(0.6)
             ).withTimeout(1.0))
-);
-
-
-        /* 
-        NamedCommands.registerCommand(camera1Name,
-        hubLock.withTimeout(1.0)
-          .andThen(Commands.parallel(
-              turret.runShooterPercent(0.8),
-              indexer.runPercent(0.6),
-              transfer.runPercent(0.6)) 
-        ));
-*/
-
-        /*
-         * Raise Elevator to L3
-         * Pivot Endeffector to L3
-         */
-        NamedCommands.registerCommand("Prep_L3", 
-        elevator.runOnceHeight(ElevatorHeights.L3)
-        .alongWith(EndEffector.angle(0.52))
-        //.alongWith(algae.runPosition(() -> AlgaeAngles.STOWED))
-        .alongWith(Commands.print("Prep_L3"))
         );
-        
-        /*
-         * Raise Elevator to L2d
-         * Pivot Endeffector to L2
-         */
-        NamedCommands.registerCommand("Prep_L2", 
-        elevator.runOnceHeight(ElevatorHeights.L2)
-        .alongWith(EndEffector.angle(PivotAngles.L2))
-        //.alongWith(algae.runPosition(() -> AlgaeAngles.STOWED))
-        .alongWith(Commands.print("NamedCommand: Prep_L2"))
-        );
-
-        /*
-         * Raise Elevator to Intake Height
-         * Pivot Endeffector to L3
-         * Start Intaking
-         */
-        NamedCommands.registerCommand("Intake", 
-        elevator.runOnceHeight(ElevatorHeights.INTAKE_HEIGHT)
-        .alongWith(EndEffector.angle(PivotAngles.INTAKE))
-        //-.alongWith(algae.runPosition(() -> AlgaeAngles.STOWED))
-        .andThen(EndEffector.ejecter(0.7))
-        .alongWith(Commands.print("NamedCommand: Intake"))
-        );
-
-        /*
-         * Raise Elevator to ALgae Lower
-         * Pivot Endeffector to Stowed
-         
-        NamedCommands.registerCommand("Prep_Algae", 
-        elevator.runOnceHeight(ElevatorHeights.LOWER_ALGAE)
-        .alongWith(EndEffector.angle(PivotAngles.STOWED))
-        .alongWith(algae.runPositionandIntake(() -> AlgaeAngles.LOWER_ALGAE, () -> .9))
-        .alongWith(Commands.print("NamedCommand: Lower Algae"))
-        .withTimeout(2)
-        );
-        */
-
-        NamedCommands.registerCommand("Reset",
-        elevator.runOnceHeight(ElevatorHeights.STOWED)
-        .andThen(EndEffector.angle(PivotAngles.STOWED))
-        //.alongWith(algae.runPosition(() -> AlgaeAngles.STOWED))
-        .andThen(EndEffector.ejecter(PivotAngles.Maintain_Coral))
-        .alongWith(Commands.print("NamedCommand: Reset"))
-        );  
-
-        NamedCommands.registerCommand("Ejecter_Eject",
-        EndEffector.ejecter(-0.9)
-        .alongWith(Commands.print("NamedCommand: Ejecter_Eject"))
-        ); 
-
-        NamedCommands.registerCommand("Ejecter_EjectMAX",
-        EndEffector.ejecter(-1)
-        .alongWith(Commands.print("NamedCommand: Ejecter_EjectMAX"))
-        ); 
-
-
-        NamedCommands.registerCommand("Ejecter_Stop",
-        EndEffector.ejecter(0)
-        .alongWith(Commands.print("NamedCommand: Ejecter_Stop"))
-        ); 
 
         NamedCommands.registerCommand("Align Center", new AlignToReef(drive, reefSide.CENTER).withTimeout(2));
         NamedCommands.registerCommand("Align Left", new AlignToReef(drive, reefSide.LEFT).withTimeout(2));
@@ -598,10 +308,6 @@ public class RobotContainer {
     
     public Command getAutonomousCommand() {
         return autoChooser.get();
-    }
-
-    public EndEffector getEffector() {
-        return EndEffector;
     }
 
 
